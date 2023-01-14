@@ -1,5 +1,6 @@
 package com.example.springbootrestapi.service;
 
+import com.example.springbootrestapi.exception.CourseNotFoundException;
 import com.example.springbootrestapi.model.Course;
 import com.example.springbootrestapi.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,15 +37,14 @@ public class CourseServiceImpl implements CourseService{
     }
 
     @Override
-    public void updateCourse(long courseId, Course course) {
-        courseRepository.findById(courseId).ifPresent(dbCourse -> {
-            dbCourse.setName(course.getName());
-            dbCourse.setCategory(course.getCategory());
-            dbCourse.setDescription(course.getDescription());
-            dbCourse.setRating(course.getRating());
-
-            courseRepository.save(dbCourse);
-        });
+    public Course updateCourse(long courseId, Course course) {
+        Course existingCourse = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(String.format("No course with id %s is available ", courseId)));
+        existingCourse.setName(course.getName());
+        existingCourse.setCategory(course.getCategory());
+        existingCourse.setDescription(course.getDescription());
+        existingCourse.setRating(course.getRating());
+        return courseRepository.save(existingCourse);
     }
     @Override
     public void deleteCourses() {
@@ -53,6 +53,7 @@ public class CourseServiceImpl implements CourseService{
 
     @Override
     public void deleteCourseById(long courseId) {
+        courseRepository.findById(courseId).orElseThrow(() -> new CourseNotFoundException("No course with id " + courseId + " is available"));
         courseRepository.deleteById(courseId);
     }
 
